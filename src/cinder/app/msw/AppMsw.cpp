@@ -26,6 +26,7 @@
 #include "cinder/app/msw/PlatformMsw.h"
 #include "cinder/Unicode.h"
 #include "cinder/CinderAssert.h"
+#include <shellapi.h>
 
 using namespace std;
 
@@ -89,16 +90,32 @@ void AppMsw::launch()
 		platformMsw->directConsoleToCout( true );
 	}
 
-	mImpl->run();
+	mImpl->preLaunch();
 }
 
-WindowRef AppMsw::createWindow( const Window::Format &format )
+void AppMsw::cleanupLaunch()
+{
+	AppBase::cleanupLaunch();
+}
+
+bool AppMsw::tickable() const
+{
+	return !mImpl->mShouldQuit;
+}
+
+void AppMsw::tick()
+{
+	mImpl->tick();
+}
+
+WindowRef AppMsw::createWindow(const Window::Format &format)
 {
 	return mImpl->createWindow( format );
 }
 
 void AppMsw::quit()
 {
+	mImpl->preQuit();
 	mImpl->quit();
 }
 

@@ -413,6 +413,8 @@ class AppBase {
 
 	//! Returns a pointer to the active App
 	static AppBase*			get() { return sInstance; }
+	template<class App>
+	static App*				get() { return dynamic_cast<App*>(sInstance); }
 
   protected:
 	AppBase();

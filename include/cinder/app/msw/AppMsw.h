@@ -25,6 +25,7 @@
 
 #include "cinder/app/AppBase.h"
 #include "cinder/msw/CinderWindowsFwd.h"
+#include "cinder/app/RendererGl.h"
 
 namespace cinder { namespace app {
 
@@ -74,9 +75,6 @@ class AppMsw : public AppBase {
 	ivec2		getMousePos() const override;
 
 	//! \cond
-	// Called from WinMain (in CINDER_APP_MSW macro)
-	template<typename AppT>
-	static void main( const RendererRef &defaultRenderer, const char *title, const SettingsFn &settingsFn = SettingsFn() );
 	// Called from WinMain, forwards to AppBase::initialize() but also fills command line args using native windows API
 	static void	initialize( Settings *settings, const RendererRef &defaultRenderer, const char *title );
 	//! \endcond
@@ -87,34 +85,40 @@ class AppMsw : public AppBase {
   private:
 	std::unique_ptr<AppImplMswBasic>	mImpl;
 	bool								mConsoleWindowEnabled;
+
+  public:
+	  template<class App>
+	  static void	prepareLaunch(
+		  const std::string& title,
+		  const RendererRef &renderer = RendererRef(new RendererGl()),
+		  const SettingsFn &settingsFn = SettingsFn());
+
+	  static void	cleanupLaunch();
+	  bool			tickable() const;
+	  void			tick();
 };
 
-template<typename AppT>
-void AppMsw::main( const RendererRef &defaultRenderer, const char *title, const SettingsFn &settingsFn )
+template<class App>
+void AppMsw::prepareLaunch(
+	const std::string& title,
+	const RendererRef &renderer /*= RendererRef(new RendererGl())*/,
+	const SettingsFn &settingsFn /*= SettingsFn()*/)
 {
 	AppBase::prepareLaunch();
 
 	Settings settings;
-	AppMsw::initialize( &settings, defaultRenderer, title ); // AppMsw variant to parse args using msw-specific api
+	AppMsw::initialize(&settings, renderer, title.c_str());
 
-	if( settingsFn )
-		settingsFn( &settings );
+	if (settingsFn)
+		settingsFn(&settings);
 
-	if( settings.getShouldQuit() )
-		return;
-
-	AppMsw *app = static_cast<AppMsw *>( new AppT );
-	app->executeLaunch();
-
-	AppBase::cleanupLaunch();
-}
-
-#define CINDER_APP_MSW( APP, RENDERER, ... )													\
-int __stdcall WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )\
-{																									\
-	cinder::app::RendererRef renderer( new RENDERER );												\
-	cinder::app::AppMsw::main<APP>( renderer, #APP, ##__VA_ARGS__ );							\
-	return 0;																						\
+	if (!settings.getShouldQuit())
+	{
+		if (AppMsw *instance = dynamic_cast<AppMsw*>(new App))
+		{
+			instance->executeLaunch();
+		}
+	}
 }
 
 } } // namespace cinder::app

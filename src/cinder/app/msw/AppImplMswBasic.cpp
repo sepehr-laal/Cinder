@@ -57,62 +57,7 @@ AppImplMswBasic::AppImplMswBasic( AppMsw *app, const AppMsw::Settings &settings 
 
 void AppImplMswBasic::run()
 {
-	mApp->privateSetup__();
-	mSetupHasBeenCalled = true;
-
-	// issue initial app activation event
-	mApp->emitDidBecomeActive();
-
-	for( auto &window : mWindows )
-		window->resize();
-
-	// initialize our next frame time
-	mNextFrameTime = getElapsedSeconds();
-
-	// inner loop
-	while( ! mShouldQuit ) {
-		// all of our Windows will have marked this as true if the user has unplugged, plugged or modified a Monitor
-		if( mNeedsToRefreshDisplays ) {
-			mNeedsToRefreshDisplays = false;
-			PlatformMsw::get()->refreshDisplays();
-		}
-
-		// update and draw
-		mApp->privateUpdate__();
-		for( auto &window : mWindows )
-			window->redraw();
-
-		// get current time in seconds
-		double currentSeconds = mApp->getElapsedSeconds();
-
-		// calculate time per frame in seconds
-		double secondsPerFrame = 1.0 / mFrameRate;
-
-		// determine if application was frozen for a while and adjust next frame time
-		double elapsedSeconds = currentSeconds - mNextFrameTime;
-		if( elapsedSeconds > 1.0 ) {
-			int numSkipFrames = (int)(elapsedSeconds / secondsPerFrame);
-			mNextFrameTime += (numSkipFrames * secondsPerFrame);
-		}
-
-		// determine when next frame should be drawn
-		mNextFrameTime += secondsPerFrame;
-
-		// sleep and process messages until next frame
-		if( ( mFrameRateEnabled ) && ( mNextFrameTime > currentSeconds ) )
-			sleep(mNextFrameTime - currentSeconds);
-		else {
-			MSG msg;
-			while( ::PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) ) {
-				::TranslateMessage( &msg );
-				::DispatchMessage( &msg );
-			}
-		}
-	}
-
-//	killWindow( mFullScreen );
-	mApp->emitCleanup();
-	delete mApp;
+	/* no-op */
 }
 
 void AppImplMswBasic::sleep( double seconds )
@@ -211,6 +156,70 @@ WindowRef AppImplMswBasic::getForegroundWindow() const
 void AppImplMswBasic::setForegroundWindow( WindowRef window )
 {
 	mForegroundWindow = window;
+}
+
+void AppImplMswBasic::preLaunch()
+{
+	mApp->privateSetup__();
+	mSetupHasBeenCalled = true;
+
+	// issue initial app activation event
+	mApp->emitDidBecomeActive();
+
+	for (auto &window : mWindows)
+		window->resize();
+
+	// initialize our next frame time
+	mNextFrameTime = getElapsedSeconds();
+}
+
+void AppImplMswBasic::preQuit()
+{
+	mApp->emitCleanup();
+	delete mApp;
+}
+
+void AppImplMswBasic::tick()
+{
+	if (!mShouldQuit) {
+		// all of our Windows will have marked this as true if the user has unplugged, plugged or modified a Monitor
+		if (mNeedsToRefreshDisplays) {
+			mNeedsToRefreshDisplays = false;
+			PlatformMsw::get()->refreshDisplays();
+		}
+
+		// update and draw
+		mApp->privateUpdate__();
+		for (auto &window : mWindows)
+			window->redraw();
+
+		// get current time in seconds
+		double currentSeconds = mApp->getElapsedSeconds();
+
+		// calculate time per frame in seconds
+		double secondsPerFrame = 1.0 / mFrameRate;
+
+		// determine if application was frozen for a while and adjust next frame time
+		double elapsedSeconds = currentSeconds - mNextFrameTime;
+		if (elapsedSeconds > 1.0) {
+			int numSkipFrames = (int)(elapsedSeconds / secondsPerFrame);
+			mNextFrameTime += (numSkipFrames * secondsPerFrame);
+		}
+
+		// determine when next frame should be drawn
+		mNextFrameTime += secondsPerFrame;
+
+		// sleep and process messages until next frame
+		if ((mFrameRateEnabled) && (mNextFrameTime > currentSeconds))
+			sleep(mNextFrameTime - currentSeconds);
+		else {
+			MSG msg;
+			while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+				::TranslateMessage(&msg);
+				::DispatchMessage(&msg);
+			}
+		}
+	}
 }
 
 // This creates a full-screen blanking (all black) Window on each display besides 'fullScreenDisplay'

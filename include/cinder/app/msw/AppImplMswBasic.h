@@ -78,6 +78,11 @@ class AppImplMswBasic : public AppImplMsw {
 
 	friend LRESULT CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	friend class AppMsw;
+
+   public:
+	   void			preLaunch();
+	   void			preQuit();
+	   void			tick();
 };
 
 class WindowImplMswBasic : public WindowImplMsw {
