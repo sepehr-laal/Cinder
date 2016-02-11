@@ -43,7 +43,7 @@ using namespace std;
 namespace cinder { namespace app {
 
 PlatformMsw::PlatformMsw()
-	: mDirectConsoleToCout( false ), mDisplaysInitialized( false )
+	: mDisplaysInitialized( false )
 {
 	ImageSourceFileWic::registerSelf();
 	ImageTargetFileWic::registerSelf();
@@ -97,13 +97,12 @@ fs::path PlatformMsw::getSaveFilePath( const fs::path &initialPath, const std::v
 
 std::ostream& PlatformMsw::console()
 {
-	if( mDirectConsoleToCout )
-		return std::cout;
-
+	return std::cout;
+/*
 	if( ! mOutputStream )
 		mOutputStream.reset( new cinder::msw::dostream );
 	
-	return *mOutputStream;
+	return *mOutputStream;*/
 }
 
 map<string,string> PlatformMsw::getEnvironmentVariables()

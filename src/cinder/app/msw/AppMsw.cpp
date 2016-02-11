@@ -45,7 +45,6 @@ AppMsw::AppMsw()
 	CI_ASSERT( settings );
 
 	// pull out app-level variables
-	mConsoleWindowEnabled = settings->isConsoleWindowEnabled();
 	enablePowerManagement( settings->isPowerManagementEnabled() ); // TODO: consider moving to common method
 
 	mImpl.reset( new AppImplMswBasic( this, *settings ) );
@@ -76,20 +75,6 @@ void AppMsw::initialize( Settings *settings, const RendererRef &defaultRenderer,
 
 void AppMsw::launch()
 {
-	// allocate and redirect the console if requested
-	if( mConsoleWindowEnabled ) {
-		::AllocConsole();
-		freopen( "CONIN$", "r", stdin );
-		freopen( "CONOUT$", "w", stdout );
-		freopen( "CONOUT$", "w", stderr );
-
-		// tell msw platform that it should use std::cout for the console
-		auto platformMsw = reinterpret_cast<PlatformMsw *>( Platform::get() );
-		CI_ASSERT_MSG( platformMsw, "expected current Platform to be of type PlatformMsw" );
-
-		platformMsw->directConsoleToCout( true );
-	}
-
 	mImpl->preLaunch();
 }
 

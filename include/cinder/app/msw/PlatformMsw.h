@@ -53,8 +53,6 @@ class PlatformMsw : public Platform {
 	// Overridden to use OutputDebugString
 	std::ostream&	console() override;
 
-	void directConsoleToCout( bool shouldDirect )	{ mDirectConsoleToCout = shouldDirect; }
-
 	void launchWebBrowser( const Url &url ) override;
 
 	void sleep( float milliseconds ) override;
@@ -68,7 +66,6 @@ class PlatformMsw : public Platform {
 
   private:
 	std::unique_ptr<std::ostream>	mOutputStream;
-	bool							mDirectConsoleToCout;
 
 	bool							mDisplaysInitialized;
 	std::vector<DisplayRef>			mDisplays;

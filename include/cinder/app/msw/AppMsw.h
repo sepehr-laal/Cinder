@@ -35,19 +35,8 @@ class AppMsw : public AppBase {
   public:
 	//! MSW-specific settings
 	class Settings : public AppBase::Settings {
-	  public:
-		Settings() : mMswConsoleEnabled( false )				{}
-
-		//! If enabled MSW apps will display a secondary window which captures all cout, cerr, cin and App::console() output. Default is \c false.
-		void	setConsoleWindowEnabled( bool enable = true )	{ mMswConsoleEnabled = enable; }
-		//! Returns whether MSW apps will display a secondary window which captures all cout, cerr, cin and App::console() output. Default is \c false.
-		bool	isConsoleWindowEnabled() const					{ return mMswConsoleEnabled; }
-
 	  private:
 		void	pushBackCommandLineArg( const std::string &arg );
-
-		bool	mMswConsoleEnabled;
-
 		friend AppMsw;
 	};
 
@@ -84,7 +73,6 @@ class AppMsw : public AppBase {
 
   private:
 	std::unique_ptr<AppImplMswBasic>	mImpl;
-	bool								mConsoleWindowEnabled;
 
   public:
 	  template<class App>
